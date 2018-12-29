@@ -259,7 +259,7 @@ def recent(bot, update, args): # /recent [@user|all] [n]
 def unknown(bot, update):
     printCommandExecution(bot, update)
     myself, text, isGroup, chatID, chatName, canRunAdmin = getMsgAttributes(bot, update)
-    GMToffset, currency = dbm.getConfig(chatID)
+    # GMToffset, currency = dbm.getConfig(chatID)
 
     s = "Sorry, I didn't understand that command. Try `/help` to see all commands."
     bot.send_message(chat_id=chatID, text=s, parse_mode="Markdown")

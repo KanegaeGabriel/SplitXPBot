@@ -1,0 +1,8 @@
+start - Starts the bot and initializes the database.
+help - Shows the command list.
+reset - Resets the database.
+gaveto - Records that you gave some amount to a user.
+gaveme - Records that a user gave some amount to you.
+whogavewho - Records that some user gave some amount to another.
+total - Shows how much a user owes and is owed.
+recent - Lists the most recent transactions.

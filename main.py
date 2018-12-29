@@ -95,18 +95,18 @@ def reset(bot, update): # /reset
 def config(bot, update, args): # /config (GMToffset) (currency)
     printCommandExecution(bot, update)
     myself, text, isGroup, chatID, chatName, canRunAdmin = getMsgAttributes(bot, update)
-    GMToffset, currency = dbm.getConfig(chatID)
+    # GMToffset, currency = dbm.getConfig(chatID)
 
     if len(args) < 2:
         s = "Command usage: `/config (GMToffset) (currency)`\n"
         s += "  `GMToffset`: Hours to add/sub from the GMT timezone. e.g. `3`, `-2`.\n"
         s += "  `currency`: Currency symbol to use. e.g. `$`, `US$`.\n"
-    elif not isInt(GMToffset):
+    elif not isInt(args[0]):
         s = "Invalid GMToffset. Please give me an integer value."
-    elif abs(GMToffset) > 12:
+    elif abs(int(args[0])) > 12:
         s = "Invalid GMToffset. Please give me a value between -12 and 12."
-    elif len(currency) > 5:
-        s = "Your currency symbol is too long. Please give me one up to 5 characters long."
+    elif len(args[1]) > 5:
+        s = "Your currency symbol is too long. Please don't go over 5 characters."
     else:
         GMToffset = int(args[0])
         currency = args[1]

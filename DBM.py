@@ -78,11 +78,14 @@ class DBM:
         return "GMToffset is now {}.\nCurrency is now '{}'.".format(GMToffset, currency)
 
     def saveTransaction(self, chatID, t, GMToffset, currency):
-        self.c.execute("""INSERT INTO 'chat{}' (unixtime, userFrom, userTo, value, description)
-                          VALUES(?, ?, ?, ?, ?)""".format(chatID),
-                          (t.unixtime, t.userFrom, t.userTo, t.value, t.description))
-        self.conn.commit()
-        return t.toString(False, GMToffset, currency)
+        if t.value > 999999999: # 10M
+            return "Couldn't save that transaction. The amount is too large."
+        else:
+            self.c.execute("""INSERT INTO 'chat{}' (unixtime, userFrom, userTo, value, description)
+                              VALUES(?, ?, ?, ?, ?)""".format(chatID),
+                              (t.unixtime, t.userFrom, t.userTo, t.value, t.description))
+            self.conn.commit()
+            return t.toString(False, GMToffset, currency)
 
     def printTotal(self, chatID, user, currency):
         self.c.execute("""SELECT * FROM 'chat{}'

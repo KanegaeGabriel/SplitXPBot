@@ -66,11 +66,11 @@ def start(bot, update): # /start
 
     h = [
         "Hi! I am SplitXPBot! I'm here to manage your shared expenses! ",
-        "I can be used in a group chat or in a private chat. :)\n",
+        "I can be used in a group chat or in a private one. :)\n",
         "\n",
         "Type `/help` to see the available commands.\n"
         "\n",
-        "Also, be sure to configure the bot to your liking with `/config`!\n",
+        "Also, be sure to configure me to your liking with `/config`!\n",
         ]
 
     dbm.newChat(chatID)
@@ -97,14 +97,14 @@ def config(bot, update, args): # /config (GMToffset) (currency)
     myself, text, isGroup, chatID, chatName, canRunAdmin = getMsgAttributes(bot, update)
     # GMToffset, currency = dbm.getConfig(chatID)
 
-    if len(args) < 2:
-        s = "Command usage: `/config (GMToffset) (currency)`\n"
-        s += "  `GMToffset`: Hours to add/sub from the GMT timezone. e.g. `3`, `-2`.\n"
+    if len(args) != 2:
+        s = "Command usage: `/config (GMT offset) (currency)`\n"
+        s += "  `GMT offset`: Hours to add/sub from the GMT timezone. e.g. `3`, `-2`.\n"
         s += "  `currency`: Currency symbol to use. e.g. `$`, `US$`.\n"
     elif not isInt(args[0]):
-        s = "Invalid GMToffset. Please give me an integer value."
+        s = "Invalid GMT offset. Please give me an integer value."
     elif abs(int(args[0])) > 12:
-        s = "Invalid GMToffset. Please give me a value between -12 and 12."
+        s = "Invalid GMT offset. Please give me a value between -12 and 12."
     elif len(args[1]) > 5:
         s = "Your currency symbol is too long. Please don't go over 5 characters."
     else:

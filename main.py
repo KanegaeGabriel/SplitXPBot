@@ -11,7 +11,6 @@ dbm = DBM("chats.db")
 def kill(bot, update):
     printCommandExecution(bot, update)
     myself, text, isGroup, chatID, chatName, canRunAdmin = getMsgAttributes(bot, update)
-    # GMToffset, currency = dbm.getConfig(chatID)
     
     s = dbm.killAllTables()
     
@@ -20,7 +19,6 @@ def kill(bot, update):
 def help(bot, update): # /help
     printCommandExecution(bot, update)
     myself, text, isGroup, chatID, chatName, canRunAdmin = getMsgAttributes(bot, update)
-    GMToffset, currency = dbm.getConfig(chatID)
 
     h = [
         "*{U}* commands can be used by anyone. *{A}* can be used only by group admins. ",
@@ -62,7 +60,6 @@ def help(bot, update): # /help
 def start(bot, update): # /start
     printCommandExecution(bot, update)
     myself, text, isGroup, chatID, chatName, canRunAdmin = getMsgAttributes(bot, update)
-    # GMToffset, currency = dbm.getConfig(chatID)
 
     h = [
         "Hi! I am SplitXPBot! I'm here to manage your shared expenses! ",
@@ -100,7 +97,6 @@ def reset(bot, update): # /reset
 def config(bot, update, args): # /config (GMToffset) (currency)
     printCommandExecution(bot, update)
     myself, text, isGroup, chatID, chatName, canRunAdmin = getMsgAttributes(bot, update)
-    # GMToffset, currency = dbm.getConfig(chatID)
 
     if len(args) != 2:
         s = "Command usage: `/config (GMT offset) (currency)`\n"
@@ -291,7 +287,6 @@ def recent(bot, update, args): # /recent [@user|all] [n]
 def unknown(bot, update):
     printCommandExecution(bot, update)
     myself, text, isGroup, chatID, chatName, canRunAdmin = getMsgAttributes(bot, update)
-    # GMToffset, currency = dbm.getConfig(chatID)
 
     s = "Sorry, I didn't understand that command. Try `/help` to see all commands."
     bot.send_message(chat_id=chatID, text=s, parse_mode="Markdown")

@@ -16,8 +16,6 @@ class DBM:
                                                     )""")
         self.conn.commit()
 
-        self.tableList = self.getTableList()
-
     def getTableList(self):
         self.c.execute("""SELECT name FROM sqlite_master WHERE type='table'""")
         result = self.c.fetchall()
@@ -57,7 +55,7 @@ class DBM:
         return s
 
     def killAllTables(self):
-        for t in self.tableList:
+        for t in self.getTableList():
             self.c.execute("""DROP TABLE IF EXISTS '{}'""".format(t))
         self.c.execute("""CREATE TABLE IF NOT EXISTS configs (
                                                     ID INTEGER PRIMARY KEY,

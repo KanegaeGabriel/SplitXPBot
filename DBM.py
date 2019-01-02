@@ -121,6 +121,42 @@ class DBM:
         else:
             return "".join(s[:-1])
 
+    def printAllTotals(self, chatID, currency):
+        self.c.execute("""SELECT * FROM 'chat{}'""".format(chatID))
+
+        result = self.c.fetchall()
+        txs = []
+        for r in result:
+            txs.append(Transaction(r[2], r[3], r[4]/100, r[5], r[1]))
+
+        totals = []
+        for t in txs:
+            updated = False
+            for total in totals:
+                if t.userFrom == total[0] and t.userTo == total[1]:
+                    total[2] += -t.value
+                    updated = True
+                    break
+                elif t.userTo == total[0] and t.userFrom == total[1]:
+                    total[2] += t.value
+                    updated = True
+                    break
+
+            if not updated:
+                totals.append([t.userFrom, t.userTo, -t.value])
+
+        s = []
+        for total in totals:
+            if total[2] > 0:
+                s += "{} owes {} {}{:.2f}".format(total[0], total[1], currency, total[2]/100) + "\n"
+            elif total[2] < 0:
+                s += "{} owes {} {}{:.2f}".format(total[1], total[0], currency, -total[2]/100) + "\n"
+
+        if len(s) == 0:
+            return "Nothing to show."
+        else:
+            return "".join(s[:-1])
+
     def printRecent(self, chatID, user, n, GMToffset, currency):
         if user == "all":
             self.c.execute("""SELECT * FROM 'chat{}'

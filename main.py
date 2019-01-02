@@ -217,10 +217,12 @@ def total(bot, update, args): # /total [@user]
     myself, text, isGroup, chatID, chatName, canRunAdmin = getMsgAttributes(bot, update)
     GMToffset, currency = dbm.getConfig(chatID)
 
-    if len(args) > 0 and args[0][0] != "@":
+    if len(args) > 0 and args[0] != "all" and args[0][0] != "@":
         s = "Please call a user by their Telegram username, starting with @."
     else:
-        if len(args) > 0:
+        if len(args) > 0 and args[0] == "all":
+            s = dbm.printAllTotals(chatID, currency)
+        elif len(args) > 0:
             user = args[0].replace("@", "")
             s = dbm.printTotal(chatID, user, currency)
         else:

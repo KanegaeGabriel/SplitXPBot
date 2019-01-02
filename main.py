@@ -88,6 +88,11 @@ def reset(bot, update): # /reset
         bot.send_message(chat_id=chatID, text=s, parse_mode="Markdown")
         return
 
+    if GMToffset == None and currency == None:
+        s = "I couldn't find some important data. Are you sure you have already run `/start`?"
+        bot.send_message(chat_id=chatID, text=s, parse_mode="Markdown")
+        return
+
     s = dbm.resetChat(chatID)
 
     bot.send_message(chat_id=chatID, text=s, parse_mode="Markdown")
@@ -120,6 +125,11 @@ def gaveTo(bot, update, args): # /gaveTo (@user) (amount) [description]
     myself, text, isGroup, chatID, chatName, canRunAdmin = getMsgAttributes(bot, update)
     GMToffset, currency = dbm.getConfig(chatID)
 
+    if GMToffset == None and currency == None:
+        s = "I couldn't find some important data. Are you sure you have already run `/start`?"
+        bot.send_message(chat_id=chatID, text=s, parse_mode="Markdown")
+        return
+
     if len(args) > 1: args[1] = args[1].replace(",", ".")
 
     if myself == "None":
@@ -150,6 +160,11 @@ def gaveMe(bot, update, args): # /gaveMe (@user) (amount) [description]
     printCommandExecution(bot, update)
     myself, text, isGroup, chatID, chatName, canRunAdmin = getMsgAttributes(bot, update)
     GMToffset, currency = dbm.getConfig(chatID)
+
+    if GMToffset == None and currency == None:
+        s = "I couldn't find some important data. Are you sure you have already run `/start`?"
+        bot.send_message(chat_id=chatID, text=s, parse_mode="Markdown")
+        return
 
     if len(args) > 1: args[1] = args[1].replace(",", ".")
 
@@ -187,6 +202,11 @@ def whoGaveWho(bot, update, args): # /whoGaveWho (@userA) (@userB) (amount) [des
         bot.send_message(chat_id=chatID, text=s, parse_mode="Markdown")
         return
 
+    if GMToffset == None and currency == None:
+        s = "I couldn't find some important data. Are you sure you have already run `/start`?"
+        bot.send_message(chat_id=chatID, text=s, parse_mode="Markdown")
+        return
+
     if len(args) > 2: args[2] = args[2].replace(",", ".")
 
     if myself == "None":
@@ -217,6 +237,11 @@ def total(bot, update, args): # /total [@user]
     myself, text, isGroup, chatID, chatName, canRunAdmin = getMsgAttributes(bot, update)
     GMToffset, currency = dbm.getConfig(chatID)
 
+    if GMToffset == None and currency == None:
+        s = "I couldn't find some important data. Are you sure you have already run `/start`?"
+        bot.send_message(chat_id=chatID, text=s, parse_mode="Markdown")
+        return
+
     if len(args) > 0 and args[0] != "all" and args[0][0] != "@":
         s = "Please call a user by their Telegram username, starting with @."
     else:
@@ -234,6 +259,11 @@ def recent(bot, update, args): # /recent [@user|all] [n]
     printCommandExecution(bot, update)
     myself, text, isGroup, chatID, chatName, canRunAdmin = getMsgAttributes(bot, update)
     GMToffset, currency = dbm.getConfig(chatID)
+
+    if GMToffset == None and currency == None:
+        s = "I couldn't find some important data. Are you sure you have already run `/start`?"
+        bot.send_message(chat_id=chatID, text=s, parse_mode="Markdown")
+        return
 
     if myself == "None":
         s = "How come you don't have a Telegram username? Please create one."

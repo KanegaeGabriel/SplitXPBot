@@ -46,10 +46,15 @@ class DBM:
         self.conn.commit()
         return "Table for chatID={} created.".format(chatID)
 
-    def resetChat(self, chatID):
+    def resetChat(self, chatID, currency):
+        s = "Database reset.\n"
+        s += "The group total was:\n\n"
+        s += self.printAllTotals(chatID, currency)
+
         self.c.execute("""DROP TABLE IF EXISTS 'chat{}'""".format(chatID))
         self.newChat(chatID)
-        return "Database reset."
+
+        return s
 
     def killAllTables(self):
         for t in self.tableList:
@@ -67,9 +72,11 @@ class DBM:
     def getConfig(self, chatID):
         self.c.execute("""SELECT * FROM configs WHERE chatID = ?""", (chatID,))
         r = self.c.fetchone()
-        GMToffset, currency = r[2], r[3]
-
-        return (GMToffset, currency)
+        if r: 
+            GMToffset, currency = r[2], r[3]
+            return (GMToffset, currency)
+        else:
+            return (None, None)
 
     def setConfig(self, chatID, GMToffset, currency):
         self.c.execute("""UPDATE configs SET GMToffset = ?, currency = ?

@@ -93,7 +93,7 @@ def reset(bot, update): # /reset
         bot.send_message(chat_id=chatID, text=s, parse_mode="Markdown")
         return
 
-    s = dbm.resetChat(chatID)
+    s = dbm.resetChat(chatID, currency)
 
     bot.send_message(chat_id=chatID, text=s, parse_mode="Markdown")
 

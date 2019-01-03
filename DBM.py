@@ -1,23 +1,24 @@
-from sqlite3 import connect
+from psycopg2 import connect
 from time import time
 
 from Transaction import Transaction
 from utils import *
 
 class DBM:
-    def __init__(self, filename):
-        self.conn = connect(filename, check_same_thread=False)
+    def __init__(self, DATABASE_URL):
+        self.conn = connect(DATABASE_URL, sslmode='require')
         self.c = self.conn.cursor()
         self.c.execute("""CREATE TABLE IF NOT EXISTS configs (
-                                                    ID INTEGER PRIMARY KEY,
-                                                    chatID INTEGER NOT NULL,
+                                                    chatID INTEGER PRIMARY KEY,
                                                     GMToffset INTEGER NOT NULL,
                                                     currency TEXT NOT NULL
                                                     )""")
         self.conn.commit()
 
     def getTableList(self):
-        self.c.execute("""SELECT name FROM sqlite_master WHERE type='table'""")
+        self.c.execute("""SELECT table_name FROM information_schema.tables
+                          WHERE table_schema='public'""")
+
         result = self.c.fetchall()
     
         l = set()
@@ -30,8 +31,7 @@ class DBM:
         self.conn.close()
 
     def newChat(self, chatID):
-        self.c.execute("""CREATE TABLE IF NOT EXISTS 'chat{}' (
-                                                    ID INTEGER PRIMARY KEY,
+        self.c.execute("""CREATE TABLE IF NOT EXISTS \"chat{}\" (
                                                     unixtime INTEGER NOT NULL,
                                                     userFrom TEXT NOT NULL,
                                                     userTo TEXT NOT NULL,
@@ -39,9 +39,13 @@ class DBM:
                                                     description TEXT
                                                     )""".format(chatID))
 
-        self.c.execute("""INSERT INTO configs (chatID, GMToffset, currency)
-                          VALUES(?, ?, ?)""", (chatID, 0, "$"))
+        self.c.execute("""DELETE FROM configs WHERE chatID = %s""", (chatID,))
         self.conn.commit()
+
+        self.c.execute("""INSERT INTO configs (chatID, GMToffset, currency)
+                          VALUES(%s, %s, %s)""", (chatID, 0, "$"))
+        self.conn.commit()
+
         return "Table for chatID={} created.".format(chatID)
 
     def resetChat(self, chatID, currency):
@@ -49,57 +53,57 @@ class DBM:
         s += "The group total was:\n\n"
         s += self.printAllTotals(chatID, currency)
 
-        self.c.execute("""DROP TABLE IF EXISTS 'chat{}'""".format(chatID))
+        self.c.execute("""DROP TABLE IF EXISTS \"chat{}\"""".format(chatID))
         self.newChat(chatID)
 
         return s
 
     def killAllTables(self):
         for t in self.getTableList():
-            self.c.execute("""DROP TABLE IF EXISTS '{}'""".format(t))
+            self.c.execute("""DROP TABLE IF EXISTS \"{}\"""".format(t))
         self.c.execute("""CREATE TABLE IF NOT EXISTS configs (
-                                                    ID INTEGER PRIMARY KEY,
-                                                    chatID INTEGER NOT NULL,
+                                                    chatID INTEGER PRIMARY KEY,
                                                     GMToffset INTEGER NOT NULL,
                                                     currency TEXT NOT NULL
                                                     )""")
         self.conn.commit()
 
-        return "Wiped all data."    
+        return "Wiped all data."
 
     def getConfig(self, chatID):
-        self.c.execute("""SELECT * FROM configs WHERE chatID = ?""", (chatID,))
+        self.c.execute("""SELECT * FROM configs WHERE chatID = %s""", (chatID,))
         r = self.c.fetchone()
-        if r: 
-            GMToffset, currency = r[2], r[3]
+        
+        if r:
+            GMToffset, currency = r[1], r[2]
             return (GMToffset, currency)
         else:
             return (None, None)
 
     def setConfig(self, chatID, GMToffset, currency):
-        self.c.execute("""UPDATE configs SET GMToffset = ?, currency = ?
-                          WHERE chatID = ?""", (GMToffset, currency, chatID))
+        self.c.execute("""UPDATE configs SET GMToffset = %s, currency = %s
+                          WHERE chatID = %s""", (GMToffset, currency, chatID))
         self.conn.commit()
         return "GMToffset is now {}.\nCurrency is now '{}'.".format(GMToffset, currency)
 
     def saveTransaction(self, chatID, t, GMToffset, currency):
-        if t.value > 999999999: # 10M
+        if t.value > 999999999: # $10M
             return "Couldn't save that transaction. The amount is too large."
         else:
-            self.c.execute("""INSERT INTO 'chat{}' (unixtime, userFrom, userTo, value, description)
-                              VALUES(?, ?, ?, ?, ?)""".format(chatID),
+            self.c.execute("""INSERT INTO \"chat{}\" (unixtime, userFrom, userTo, value, description)
+                              VALUES(%s, %s, %s, %s, %s)""".format(chatID),
                               (t.unixtime, t.userFrom, t.userTo, t.value, t.description))
             self.conn.commit()
             return t.toString(False, GMToffset, currency)
 
     def printTotal(self, chatID, user, currency):
-        self.c.execute("""SELECT * FROM 'chat{}'
-                          WHERE userFrom = ? OR userTo = ?""".format(chatID), (user,user))
+        self.c.execute("""SELECT * FROM \"chat{}\"
+                          WHERE userFrom = %s OR userTo = %s""".format(chatID), (user,user))
 
         result = self.c.fetchall()
         txs = []
         for r in result:
-            txs.append(Transaction(r[2], r[3], r[4]/100, r[5], r[1]))
+            txs.append(Transaction(r[1], r[2], r[3]/100, r[4], r[0]))
 
         d = {}
         for t in txs:
@@ -127,12 +131,12 @@ class DBM:
             return "".join(s[:-1])
 
     def printAllTotals(self, chatID, currency):
-        self.c.execute("""SELECT * FROM 'chat{}'""".format(chatID))
+        self.c.execute("""SELECT * FROM \"chat{}\"""".format(chatID))
 
         result = self.c.fetchall()
         txs = []
         for r in result:
-            txs.append(Transaction(r[2], r[3], r[4]/100, r[5], r[1]))
+            txs.append(Transaction(r[1], r[2], r[3]/100, r[4], r[0]))
 
         totals = []
         for t in txs:
@@ -164,12 +168,12 @@ class DBM:
 
     def printRecent(self, chatID, user, n, GMToffset, currency):
         if user == "all":
-            self.c.execute("""SELECT * FROM 'chat{}'
-                              ORDER BY ID DESC LIMIT ?""".format(chatID), (n,))
+            self.c.execute("""SELECT * FROM \"chat{}\"
+                              ORDER BY unixtime DESC LIMIT %s""".format(chatID), (n,))
         else:
-            self.c.execute("""SELECT * FROM 'chat{}'
-                              WHERE (userFrom = ? OR userTo = ?)
-                              ORDER BY ID DESC LIMIT ?""".format(chatID), (user,user,n))
+            self.c.execute("""SELECT * FROM \"chat{}\"
+                              WHERE (userFrom = %s OR userTo = %s)
+                              ORDER BY unixtime DESC LIMIT %s""".format(chatID), (user,user,n))
 
         result = self.c.fetchall()
 
@@ -178,7 +182,7 @@ class DBM:
         else:
             s = ""
             for r in result:
-                tx = Transaction(r[2], r[3], r[4]/100, r[5], r[1])
+                tx = Transaction(r[1], r[2], r[3]/100, r[4], r[0])
                 s += tx.toString(True, GMToffset, currency)
                 s += "\n"
 

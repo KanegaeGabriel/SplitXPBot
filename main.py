@@ -1,12 +1,11 @@
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
+from os import environ
 import logging
 
 import auth # Telegram Bot Token
 from DBM import DBM
 from Transaction import Transaction
 from utils import *
-
-dbm = DBM("chats.db")
 
 def kill(bot, update):
     printCommandExecution(bot, update)
@@ -331,4 +330,7 @@ def main():
     dbm.close()
 
 if __name__ == "__main__":
+    # Connect to PostgreSQL database
+    dbm = DBM(environ['DATABASE_URL'])
+
     main()
